@@ -313,3 +313,7 @@ impl AdminOperations for FastBukaContract {
 
         Ok(())
     }
+}
+
+mod datatypes;
+mod interface;
