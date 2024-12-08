@@ -1,1 +1,1 @@
-# contract.fastbuka.com
+# Check Fast Buka Contract Readme for more info.
