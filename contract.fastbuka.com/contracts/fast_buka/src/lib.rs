@@ -7,6 +7,8 @@ use soroban_sdk::{
 #[contract]
 pub struct FastBukaContract;
 
+
+
 // Implementations
 #[contractimpl]
 impl OrderManagement for FastBukaContract {
@@ -314,6 +316,7 @@ impl AdminOperations for FastBukaContract {
         Ok(())
     }
 }
+
 
 mod datatypes;
 mod interface;
