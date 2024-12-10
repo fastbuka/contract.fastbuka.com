@@ -1,8 +1,9 @@
-// Trait Definitions
+use crate::datatypes::{FastBukaError, Order, OrderStatus, DisputeResolution};
 use soroban_sdk::{
     Address, Env,
     Symbol, Vec
 };
+
 
 pub trait OrderManagement {
     fn create_order(env: Env, user: Address, vendor: Address, amount: i128) -> Result<Symbol, FastBukaError>;
