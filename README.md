@@ -1,49 +1,50 @@
 # Fast buka Escrow Soroban Contract.
+The Fast Buka Escrow Soroban Contract is a smart contract that will be deployed on the Stellar network to facilitate secure and transparent payment flows for the Fast Buka food delivery application. The contract ensures that payments between the Customer, Vendor (Restaurant), and Rider (Delivery Personnel) are securely handled, with automatic fund distribution based on specific confirmations.
 
-- A Soroban smart contract for secure food delivery payments on the Stellar network, powering the Fast Buka food delivery application.
+
 
 ## Overview
 
-- The Fast Buka Escrow smart contract manages payment flows between three parties:
+- This contract is will be designed to:
 
-1. Users (Customers)
-2. Vendors (Restaurants)
-3. Riders (Delivery Personnel)
+1. Hold customer payments in escrow until both the customer and rider confirm the delivery.
 
-The contract implements a secure escrow system where:
-- Customer payments are held in escrow until delivery is confirmed.
-- Funds are automatically distributed based on confirmations.
-- An admin can resolve disputes.
-- For now, Payments are handled in NGNC tokens (Nigerian Naira stablecoin).
+2. Automatically distribute funds to the vendor and rider based on delivery confirmations.
+
+3. Handle dispute resolution efficiently by determining the fault party and adjusting the payments accordingly.
 
 
-## Features
-### Payment Distribution
+The contract will support payments in any Stellar asset token, providing flexibility to accommodate various tokens as required by the Fast Buka platform.
 
-- 98% of payment goes to the vendor.
-- 2% goes to the rider.
-- Automatic distribution upon successful delivery confirmation.
 
-### Multi-Party Confirmation
 
-- User must confirm receive of food.
-- Rider must confirm delivery.
-- Both confirmations trigger automatic payment distribution.
+## Payment Distribution Process
 
-### Dispute Resolution
+### Total Payment and Rider Fee Storage:
+    - When the customer makes a payment, the total amount is stored in the contract along with the rider’s fee.
+    - Upon successful delivery confirmation by both the customer and rider, the rider’s fee is deducted from the total amount. The remaining balance is sent to the vendor
+### Dispute Handling:
+    - In case of a dispute, the resolve_dispute() function allows the admin to refund the necessary party (e.g., the user or the vendor) and apply penalties (e.g., deducting amounts from the rider’s wallet if the rider is at fault).
 
-The contract includes comprehensive dispute resolution:
-1. User Fault
-    - Normal payment processing proceeds
-    - Vendor receives 98%.
-    - Rider receives 2%.
 
-2. Rider Fault.
-    - Vendor receives their share.
-    - User gets refunded.
-    - Amount deducted from rider's wallet.
+## Sequence Diagram for Soroban Escrow contract
 
-3. Vendor Fault.
-    - User receives refund of vendor's share.
-    - Rider still receives their commission.
-    - Vendor receives nothing.
+### Customer Makes Payment: 
+- Customer sends payment to the contract in any Stellar asset token.
+- Payment is held in escrow until delivery is confirmed.
+
+
+### Rider Confirms Delivery:
+- Rider confirms successful delivery on the contract.
+- Contract then triggers a request for customer confirmation.
+
+
+### Customer Confirms Receipt:
+- Customer confirms food receipt.
+- Contract releases the funds.
+    - The rider’s fee is deducted first.
+    - Remaining balance is distributed between the vendor and rider.
+
+- Dispute Resolution:
+    - If any party contests the delivery, the admin can use the resolve_dispute() method to determine fault and adjust payments accordingly.
+
