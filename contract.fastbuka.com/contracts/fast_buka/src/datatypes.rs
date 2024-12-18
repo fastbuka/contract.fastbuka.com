@@ -1,8 +1,16 @@
 use soroban_sdk::{
     Address,
-    Symbol, contracterror,
+    Symbol, contracterror, contracttype, String
 };
 
+
+
+
+#[contracttype]
+#[derive(Clone, PartialEq, Eq)]
+pub enum Datakey {
+    OrderCount(u128),
+}
 
 
 // Error definitions
@@ -25,7 +33,10 @@ pub enum FastBukaError {
     AlreadyResolved = 13,
 }
 
+
+
 // Status Enum
+#[contracttype]
 #[derive(Clone, PartialEq)]
 #[repr(u32)]
 pub enum OrderStatus {
@@ -41,6 +52,7 @@ pub enum OrderStatus {
     Resolved = 9,
 }
 
+#[contracttype]
 #[derive(Clone, PartialEq)]
 pub enum DisputeResolution {
     UserFault,
@@ -49,51 +61,58 @@ pub enum DisputeResolution {
 }
 
 // Event Structures
+#[contracttype]
 #[derive(Clone)]
 pub struct OrderCreatedEvent {
-    order_id: Symbol,
+    order_id: String,
     user: Address,
     vendor: Address,
     amount: i128,
 }
 
+#[contracttype]
 #[derive(Clone)]
 pub struct OrderStatusUpdatedEvent {
-    order_id: Symbol,
+    order_id: String,
     old_status: OrderStatus,
     new_status: OrderStatus,
 }
 
+#[contracttype]
 #[derive(Clone)]
 pub struct ConfirmationGeneratedEvent {
-    order_id: Symbol,
+    order_id: String,
     vendor: Address,
 }
 
+#[contracttype]
 #[derive(Clone)]
 pub struct OrderPickedUpEvent {
-    order_id: Symbol,
+    order_id: String,
     rider: Address,
 }
 
+#[contracttype]
 #[derive(Clone)]
 pub struct DisputeEvent {
-    order_id: Symbol,
+    order_id: String,
     initiator: Address,
-    reason: Symbol,
+    reason: String,
 }
 
+#[contracttype]
 #[derive(Clone)]
 pub struct DisputeResolvedEvent {
-    order_id: Symbol,
+    order_id: String,
     resolution: DisputeResolution,
     admin: Address,
 }
 
 // Main Order Structure
+#[contracttype]
 #[derive(Clone)]
 pub struct Order {
-    id: Symbol,
+    id: String,
     user: Address,
     vendor: Address,
     amount: i128,

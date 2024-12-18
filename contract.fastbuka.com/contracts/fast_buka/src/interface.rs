@@ -6,7 +6,8 @@ use soroban_sdk::{
 
 
 pub trait OrderManagement {
-    fn create_order(env: Env, user: Address, vendor: Address, amount: i128) -> Result<Symbol, FastBukaError>;
+    fn get_order_count(env: &Env) -> u128; 
+    fn create_order(env: Env, user: Address, vendor: Address, totalAmount: i128, riderFee: i128) -> Result<u128, FastBukaError>;
     fn get_order(env: Env, order_id: Symbol) -> Result<Order, FastBukaError>;
     fn complete_order(env: Env, order_id: Symbol) -> Result<(), FastBukaError>;
 }

@@ -1,11 +1,11 @@
 #![no_std]
 use soroban_sdk::{
-    contract, contractimpl, Address, Env,
+    contract, contractimpl, Address, Env, String,
     Symbol, Vec,
 };
 use soroban_sdk::token::Client as TokenClient;
 use crate::interface::{OrderManagement, VendorOperations, UserOperations, RiderOperations, AdminOperations};
-use crate::datatypes::{FastBukaError, Order, OrderStatus, DisputeResolution};
+use crate::datatypes::{FastBukaError, Order, OrderStatus, DisputeResolution, Datakey, OrderCreatedEvent};
 
 
 #[contract]
@@ -15,110 +15,84 @@ pub struct FastBukaContract;
 
 #[contractimpl]
 impl OrderManagement for FastBukaContract {
-    fn create_order(env: Env, user: Address, vendor: Address, amount: i128,) -> Result<Symbol, FastBukaError> {
-        if amount <= 0 {
+
+    fn get_order_count(env: &Env) -> u128 {
+        env.storage().instance().get(&Datakey::OrderCount(0)).unwrap_or(0)
+    }
+
+    
+    fn create_order(env: Env, user: Address, vendor: Address, total_amount: i128, rider_fee: i128) -> Result<u128, FastBukaError> {
+        if total_amount <= 0 {
             return Err(FastBukaError::InvalidAmount);
         }
 
+        // Get timestamp first
+        let timestamp = env.ledger().timestamp();
        
-       let order_id = 
+        let mut count = Self::get_order_count(&env);
+        count += 1;
 
-        let token = env.storage().instance().get(key)
+        // let order_id = String::from_val(&env, &count);
+        // Create order_id as String
+        let order_id = String::from_str(&env, &count.to_string());
+        
+
+        let token = env.storage().persistent()
+            .get(&Symbol::new(&env, "token"))
             .ok_or(FastBukaError::InvalidAmount)?;
         let token_client = TokenClient::new(&env, &token);
 
-        token_client.transfer(&user, &env.current_contract_address(), &amount)
-            .map_err(|_| FastBukaError::PaymentFailed)?;
+        // Transfer tokens
+        if let _ = token_client.transfer(&user, &env.current_contract_address(), &total_amount) {
+            return Err(FastBukaError::PaymentFailed);
+        }
 
         let order = Order {
-            id: order_id.clone(),
+            id: order_id,
             user,
             vendor,
-            amount,
+            amount: total_amount,
             status: OrderStatus::Waiting,
             rider: None,
             created_at: timestamp,
             confirmation_number: None,
         };
 
-        env.storage().set(&order_id, &order);
+        // Store order using Symbol ID
+        env.storage().persistent().set(&order_id, &order);
 
         // Add to vendor's pending orders
-        let pending_key = Symbol::new(&env, &format!("pending_{}", &vendor));
-        let mut pending_orders: Vec<Symbol> = env.storage().get(&pending_key)
+        let pending_key = Symbol::new(&env, "pending_");
+        let mut pending_orders: Vec<Symbol> = env.storage().persistent()
+            .get(&pending_key)
             .unwrap_or(Vec::new(&env));
-        pending_orders.push_back(order_id.clone());
-        env.storage().set(&pending_key, &pending_orders);
+        pending_orders.push_back(order_id);
+        env.storage().persistent().set(&pending_key, &pending_orders);
 
-        env.events().publish((
-            Symbol::new(&env, "order_created"),
+        // Update order count
+        env.storage().instance().set(&Datakey::OrderCount(0), &count);
+
+        // Publish event
+        env.events().publish(
+            (Symbol::new(&env, "order_created"),
             OrderCreatedEvent {
-                order_id: order_id.clone(),
+                order_id,
                 user,
                 vendor,
-                amount,
-            },
-        ));
+                amount: total_amount,
+            }),
+            env
+        );
 
-        Ok(order_id)
+        // Return numeric ID
+        Ok(count)
     }
     
-    // fn create_order(
-    //     env: Env,
-    //     user: Address,
-    //     vendor: Address,
-    //     amount: i128,
-    // ) -> Result<Symbol, FastBukaError> {
-    //     if amount <= 0 {
-    //         return Err(FastBukaError::InvalidAmount);
-    //     }
+   
 
-    //     let timestamp = env.ledger().timestamp();
-    //     let order_id = Symbol::new(&env, &format!("ORDER_{}_{}",&timestamp, &user));
-
-    //     let token = env.storage().get::<_, Address>(&Symbol::new(&env, "token"))
-    //         .ok_or(FastBukaError::InvalidAmount)?;
-    //     let token_client = TokenClient::new(&env, &token);
-
-    //     token_client.transfer(&user, &env.current_contract_address(), &amount)
-    //         .map_err(|_| FastBukaError::PaymentFailed)?;
-
-    //     let order = Order {
-    //         id: order_id.clone(),
-    //         user,
-    //         vendor,
-    //         amount,
-    //         status: OrderStatus::Waiting,
-    //         rider: None,
-    //         created_at: timestamp,
-    //         confirmation_number: None,
-    //     };
-
-    //     env.storage().set(&order_id, &order);
-
-    //     // Add to vendor's pending orders
-    //     let pending_key = Symbol::new(&env, &format!("pending_{}", &vendor));
-    //     let mut pending_orders: Vec<Symbol> = env.storage().get(&pending_key)
-    //         .unwrap_or(Vec::new(&env));
-    //     pending_orders.push_back(order_id.clone());
-    //     env.storage().set(&pending_key, &pending_orders);
-
-    //     env.events().publish((
-    //         Symbol::new(&env, "order_created"),
-    //         OrderCreatedEvent {
-    //             order_id: order_id.clone(),
-    //             user,
-    //             vendor,
-    //             amount,
-    //         },
-    //     ));
-
-    //     Ok(order_id)
-    // }
-
-    // fn get_order(env: Env, order_id: Symbol) -> Result<Order, FastBukaError> {
-    //     env.storage().get(&order_id).ok_or(FastBukaError::OrderNotFound)
-    // }
+    fn get_order(env: Env, order_id: Symbol) -> Result<Order, FastBukaError> {
+        env.storage().persistent().get(&order_id).ok_or(FastBukaError::OrderNotFound)
+    }
 
     // fn complete_order(env: Env, order_id: Symbol) -> Result<(), FastBukaError> {
     //     let mut order: Order = env.storage().get(&order_id)
