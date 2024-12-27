@@ -26,12 +26,16 @@ pub enum FastBukaError {
     OrderNotReady = 6,
     InvalidStatusTransition = 7,
     UnauthorizedAccess = 8,
-    PaymentFailed = 9,
+    VendorPaymentFailed = 9,
     DisputeAlreadyExists = 10,
     DisputeNotFound = 11,
     NotAdmin = 12,
     AlreadyResolved = 13,
     InsufficientBalance = 14,
+    OrderNotDelivered = 15,
+    CalculationError = 16,
+    RiderPaymentFailed = 17,
+    DepositPaymentFailed = 18,
 }
 
 
@@ -118,7 +122,7 @@ pub struct Order {
     pub token: Address,
     pub vendor: Address,
     pub amount: i128,
-    pub rider_fee: u128,
+    pub rider_fee: i128,
     pub status: OrderStatus,
     pub rider: Option<Address>,
     pub created_at: u64,
