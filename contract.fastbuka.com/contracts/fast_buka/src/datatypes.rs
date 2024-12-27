@@ -6,11 +6,11 @@ use soroban_sdk::{
 
 
 
-#[contracttype]
-#[derive(Clone, PartialEq, Eq)]
-pub enum Datakey {
-    OrderCount(u128),
-}
+// #[contracttype]
+// #[derive(Clone, PartialEq, Eq)]
+// pub enum Datakey {
+//     OrderCount(u128),
+// }
 
 
 // Error definitions
@@ -31,6 +31,7 @@ pub enum FastBukaError {
     DisputeNotFound = 11,
     NotAdmin = 12,
     AlreadyResolved = 13,
+    InsufficientBalance = 14,
 }
 
 
@@ -64,60 +65,62 @@ pub enum DisputeResolution {
 #[contracttype]
 #[derive(Clone)]
 pub struct OrderCreatedEvent {
-    order_id: String,
-    user: Address,
-    vendor: Address,
-    amount: i128,
+    pub count: u128,
+    pub user: Address,
+    pub vendor: Address,
+    pub amount: u128,
 }
 
 #[contracttype]
 #[derive(Clone)]
 pub struct OrderStatusUpdatedEvent {
-    order_id: String,
-    old_status: OrderStatus,
-    new_status: OrderStatus,
+    pub order_id: u128,
+    pub old_status: OrderStatus,
+    pub new_status: OrderStatus,
 }
 
 #[contracttype]
 #[derive(Clone)]
 pub struct ConfirmationGeneratedEvent {
-    order_id: String,
-    vendor: Address,
+    pub order_id: u128,
+    pub vendor: Address,
 }
 
 #[contracttype]
 #[derive(Clone)]
 pub struct OrderPickedUpEvent {
-    order_id: String,
-    rider: Address,
+    pub order_id: u128,
+    pub rider: Address,
 }
 
 #[contracttype]
 #[derive(Clone)]
 pub struct DisputeEvent {
-    order_id: String,
-    initiator: Address,
-    reason: String,
+    pub order_id: u128,
+    pub initiator: Address,
+    pub reason: String,
 }
 
 #[contracttype]
 #[derive(Clone)]
 pub struct DisputeResolvedEvent {
-    order_id: String,
-    resolution: DisputeResolution,
-    admin: Address,
+    pub order_id: u128,
+    pub resolution: DisputeResolution,
+    pub admin: Address,
 }
 
 // Main Order Structure
 #[contracttype]
 #[derive(Clone)]
 pub struct Order {
-    id: String,
-    user: Address,
-    vendor: Address,
-    amount: i128,
-    status: OrderStatus,
-    rider: Option<Address>,
-    created_at: u64,
-    confirmation_number: Option<u32>,
+    pub id: u128,
+    pub user: Address,
+    pub token: Address,
+    pub vendor: Address,
+    pub amount: i128,
+    pub rider_fee: u128,
+    pub status: OrderStatus,
+    pub rider: Option<Address>,
+    pub created_at: u64,
+    pub confirmation_number: Option<u32>,
 }
