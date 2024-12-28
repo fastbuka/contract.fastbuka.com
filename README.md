@@ -47,7 +47,7 @@ The contract will support payments in any Stellar asset token, providing flexibi
         - Customer confirms food receipt.
 - 4. Contract releases the funds.
         - The rider’s fee is deducted first.
-        - Remaining balance is distributed between the vendor and rider.
+        - Remaining balance is sent to the vendor.
 
 - 5.  Dispute Resolution:
         - If any party contests the delivery, the admin can use the resolve_dispute() method to determine fault and adjust payments accordingly.
