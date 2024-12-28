@@ -92,6 +92,8 @@ impl OrderManagement for FastBukaContract {
     }
 
     fn complete_order(env: Env, order_id: Symbol) -> Result<(), FastBukaError> {
+        // must add:  only the customer should be able to call this function.
+
         // 1. Get order
         let mut order: Order = env
             .storage()
@@ -404,3 +406,5 @@ impl OrderManagement for FastBukaContract {
 
 mod datatypes;
 mod interface;
+mod test;
+mod token;
