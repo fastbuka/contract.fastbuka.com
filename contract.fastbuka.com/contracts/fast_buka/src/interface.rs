@@ -34,6 +34,7 @@ pub trait AdminOperations {
     fn get_dispute_details(env: Env, order_id: Symbol) -> Result<(Address, Symbol), FastBukaError>;
 }
 
+
 pub trait DisputeOperations {
     fn raise_dispute(env: Env, order_id: Symbol, reason: Symbol) -> Result<(), FastBukaError>;
 }
