@@ -28,7 +28,7 @@ fn test_create_order() {
 
   
     let usdc_token = create_token(&env, &admin);
-    let token_address = usdc_token.address;
+    let token_address = usdc_token.address.clone();
     usdc_token.mint(&user, &(total_amount as i128));
     // TokenClient::new(&env, &usdc_token).mint(&user, &total_amount);
 
@@ -37,21 +37,21 @@ fn test_create_order() {
 
     // Call create_order
     // env: Env, user: Address, token: Address, vendor: Address, total_amount: i128, rider_fee: i128
-    let order_id = client
+    let _order_id = client
         .create_order(&user, &token_address, &vendor, &total_amount, &rider_fee);
 
     // Verify order count increment
-    // let order_count = client.get_order_count(&env);
+    // let order_count = client.get_order_count();
     // assert_eq!(order_count, 1);
 
     // Verify order data
     // let stored_order: Order = env
     //     .storage()
     //     .persistent()
-    //     .get(&order_id)
+    //     .get(&_order_id)
     //     .expect("Order should exist in storage");
 
-    // assert_eq!(stored_order.id, order_id);
+    // assert_eq!(stored_order.id, _order_id);
     // assert_eq!(stored_order.user, user);
     // assert_eq!(stored_order.token, token);
     // assert_eq!(stored_order.vendor, vendor);
