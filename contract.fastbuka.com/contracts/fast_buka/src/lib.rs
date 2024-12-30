@@ -1,5 +1,5 @@
 #![no_std]
-use crate::datatypes::{DisputeResolution, FastBukaError, Order, OrderCreatedEvent, OrderStatus,};
+use crate::datatypes::{DataKey, DisputeResolution, FastBukaError, Order, OrderCreatedEvent, OrderStatus,};
 use crate::interface::{
     AdminOperations, OrderManagement, RiderOperations, UserOperations, VendorOperations,
 };
@@ -11,12 +11,12 @@ use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, String, Sy
 #[contract]
 pub struct FastBukaContract;
 
-pub const COUNTER: Symbol = symbol_short!("COUNTER");
+
 
 #[contractimpl]
 impl OrderManagement for FastBukaContract {
     fn get_order_count(env: &Env) -> u128 {
-        env.storage().instance().get(&COUNTER).unwrap_or(0)
+        env.storage().instance().get(&DataKey::OrderCounter).unwrap_or(0)
     }
 
     fn create_order(
@@ -29,6 +29,9 @@ impl OrderManagement for FastBukaContract {
     ) -> Result<u128, FastBukaError> {
         // 1. Authentication
         user.require_auth();
+
+        // add customer  address to the datakey
+        DataKey::Customer(user.clone());
 
         // 2. Get timestamp first
         let timestamp = env.ledger().timestamp();
@@ -74,11 +77,11 @@ impl OrderManagement for FastBukaContract {
         env.storage().persistent().set(&count, &order);
 
         // 9. Update order count
-        env.storage().persistent().set(&COUNTER, &count);
+        env.storage().persistent().set(&DataKey::OrderCounter, &count);
 
         // Publish event
         env.events()
-            .publish((COUNTER, symbol_short!("new_order")), count);
+            .publish((DataKey::OrderCounter, symbol_short!("new_order")), count);
 
         // Return numeric ID
         Ok(count)
