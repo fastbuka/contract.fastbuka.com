@@ -234,7 +234,11 @@
           "contract_data": {
             "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
             "key": {
-              "symbol": "COUNTER"
+              "vec": [
+                {
+                  "symbol": "OrderCounter"
+                }
+              ]
             },
             "durability": "persistent"
           }
@@ -247,7 +251,11 @@
                 "ext": "v0",
                 "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
                 "key": {
-                  "symbol": "COUNTER"
+                  "vec": [
+                    {
+                      "symbol": "OrderCounter"
+                    }
+                  ]
                 },
                 "durability": "persistent",
                 "val": {
@@ -597,7 +605,11 @@
           "v0": {
             "topics": [
               {
-                "symbol": "COUNTER"
+                "vec": [
+                  {
+                    "symbol": "OrderCounter"
+                  }
+                ]
               },
               {
                 "symbol": "new_order"

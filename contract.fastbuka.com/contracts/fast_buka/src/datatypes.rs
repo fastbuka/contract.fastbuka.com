@@ -17,9 +17,15 @@ pub enum DataKey {
     Admin,
 
     // User storage
-    User(Address),
-    UserRegId(Address),
-    UserCounter,
+    Customer(Address),
+    CustomerRegId(Address),
+    OrderCounter,
+
+    // vendor
+    Vendor(Address),
+
+    // rider
+    Rider(Address),
 }
 
 // Error definitions
