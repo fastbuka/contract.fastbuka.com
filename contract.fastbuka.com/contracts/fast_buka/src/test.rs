@@ -1,9 +1,9 @@
 #![cfg(test)]
 
-use crate::{datatypes::Order,FastBukaContract, FastBukaContractClient};
-use soroban_sdk::{testutils::Address as _, Address, Env, String, IntoVal};
+use crate::{datatypes::Order, datatypes::OrderStatus, FastBukaContract, FastBukaContractClient};
+use soroban_sdk::{testutils::Address as _, Address, Env, String, IntoVal, Symbol};
 use crate::token::token::{Token, TokenClient};
-
+extern crate std;
 
 // A helper function.
 fn create_token<'a>(e: &Env, admin: &Address) -> TokenClient<'a> {
@@ -13,52 +13,85 @@ fn create_token<'a>(e: &Env, admin: &Address) -> TokenClient<'a> {
 }
 
 #[test]
-fn test_create_order() {
-    let env = Env::default();
-    env.mock_all_auths();
-    let contract_id = env.register(FastBukaContract, ());
-    let client = FastBukaContractClient::new(&env, &contract_id);
+fn test_create_order_and_get_order() {
+   let env = Env::default();
+   env.mock_all_auths();
+   let contract_id = env.register(FastBukaContract, ());
+   let client = FastBukaContractClient::new(&env, &contract_id);
 
-    // Prepare test data
-    let admin = Address::generate(&env);
-    let user = Address::generate(&env);
-    let vendor = Address::generate(&env);
-    let total_amount: i128 = 1000; // Example total amount
-    let rider_fee: i128 = 100;    // Example rider fee
+   let admin = Address::generate(&env);
+   let user = Address::generate(&env);
+   let vendor = Address::generate(&env);
+   let total_amount: i128 = 1000;
+   let rider_fee: i128 = 100;
 
-  
-    let usdc_token = create_token(&env, &admin);
-    let token_address = usdc_token.address.clone();
-    usdc_token.mint(&user, &(total_amount as i128));
-    // TokenClient::new(&env, &usdc_token).mint(&user, &total_amount);
+   std::println!("Test Setup:");
+   std::println!("Admin: {:?}", admin);
+   std::println!("User: {:?}", user); 
+   std::println!("Vendor: {:?}", vendor);
 
-    assert_eq!(usdc_token.balance(&user), total_amount);
-    assert_eq!(usdc_token.balance(&contract_id), 0);
+   let usdc_token = create_token(&env, &admin);
+   let token_address = usdc_token.address.clone();
+   usdc_token.mint(&user, &total_amount);
 
-    // Call create_order
-    // env: Env, user: Address, token: Address, vendor: Address, total_amount: i128, rider_fee: i128
-    let _order_id = client
-        .create_order(&user, &token_address, &vendor, &total_amount, &rider_fee);
+   std::println!("\nBalances before order:");
+   std::println!("User balance: {}", usdc_token.balance(&user));
+   std::println!("Contract balance: {}", usdc_token.balance(&contract_id));
 
-    // Verify order count increment
-    // let order_count = client.get_order_count();
-    // assert_eq!(order_count, 1);
+   let order_id = client.create_order(&user, &token_address, &vendor, &total_amount, &rider_fee);
+   std::println!("\nOrder created with ID: {}", order_id);
 
-    // Verify order data
-    // let stored_order: Order = env
-    //     .storage()
-    //     .persistent()
-    //     .get(&_order_id)
-    //     .expect("Order should exist in storage");
+   let order_count = client.get_order_count();
+   std::println!("Total orders: {}", order_count);
 
-    // assert_eq!(stored_order.id, _order_id);
-    // assert_eq!(stored_order.user, user);
-    // assert_eq!(stored_order.token, token);
-    // assert_eq!(stored_order.vendor, vendor);
-    // assert_eq!(stored_order.amount, total_amount);
-    // assert_eq!(stored_order.rider_fee, rider_fee);
-    // assert_eq!(stored_order.status, crate::datatypes::OrderStatus::Waiting);
+   let order = client.get_order(&order_id);
+   std::println!("\nRetrieved order details:");
+   std::println!("Order ID: {}", order.id);
+   std::println!("Order amount: {}", order.amount);
+   std::println!("Order status: {:?}", order.status);
+   std::println!("Contract balance1: {}", usdc_token.balance(&contract_id));
+
+   assert_eq!(order.id, order_id);
+   assert_eq!(order.amount, total_amount);
 }
 
+#[test]
+fn test_get_all_orders() {
+   let env = Env::default();
+   env.mock_all_auths();
+   let contract_id = env.register(FastBukaContract, ());
+   let client = FastBukaContractClient::new(&env, &contract_id);
 
+   let admin = Address::generate(&env);
+   let user1 = Address::generate(&env);
+   let user2 = Address::generate(&env);
+   let vendor = Address::generate(&env);
 
+   std::println!("\nCreating test orders:");
+   std::println!("User1: {:?}", user1);
+   std::println!("User2: {:?}", user2);
+
+   let usdc_token = create_token(&env, &admin);
+   let token_address = usdc_token.address.clone();
+
+   let amount1: i128 = 1000;
+   let amount2: i128 = 2000;
+   usdc_token.mint(&user1, &amount1);
+   usdc_token.mint(&user2, &amount2);
+
+   let order1_id = client.create_order(&user1, &token_address, &vendor, &amount1, &100);
+   let order2_id = client.create_order(&user2, &token_address, &vendor, &amount2, &200);
+   std::println!("Created orders: {} and {}", order1_id, order2_id);
+
+   let orders = client.get_all_orders();
+   std::println!("\nRetrieved {} orders", orders.len());
+   for (i, order) in orders.iter().enumerate() {
+       std::println!("Order {}: Amount = {}", i+1, order.amount);
+   }
+
+   std::println!("Contract balance2: {}", usdc_token.balance(&contract_id));
+
+   assert_eq!(orders.len(), 2);
+   assert_eq!(orders.get(0).unwrap().amount, amount1);
+   assert_eq!(orders.get(1).unwrap().amount, amount2);
+}
