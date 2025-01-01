@@ -16,7 +16,7 @@ pub struct FastBukaContract;
 #[contractimpl]
 impl OrderManagement for FastBukaContract {
     fn get_order_count(env: &Env) -> u128 {
-        env.storage().instance().get(&DataKey::OrderCounter).unwrap_or(0)
+        env.storage().persistent().get(&DataKey::OrderCounter).unwrap_or(0)
     }
 
     fn create_order(
@@ -31,7 +31,7 @@ impl OrderManagement for FastBukaContract {
         user.require_auth();
 
         // add customer  address to the datakey
-        DataKey::Customer(user.clone());
+        env.storage().persistent().set(&DataKey::Customer(user.clone()), &true);
 
         // 2. Get timestamp first
         let timestamp = env.ledger().timestamp();
@@ -87,14 +87,14 @@ impl OrderManagement for FastBukaContract {
         Ok(count)
     }
 
-    fn get_order(env: Env, order_id: Symbol) -> Result<Order, FastBukaError> {
+    fn get_order(env: Env, order_id: u128) -> Result<Order, FastBukaError> {
         env.storage()
             .persistent()
             .get(&order_id)
             .ok_or(FastBukaError::OrderNotFound)
     }
 
-    fn complete_order(env: Env, order_id: Symbol) -> Result<(), FastBukaError> {
+    fn complete_order(env: Env, order_id: u128) -> Result<(), FastBukaError> {
         // must add:  only the customer should be able to call this function.
 
         // 1. Get order

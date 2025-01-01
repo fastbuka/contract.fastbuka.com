@@ -57,7 +57,7 @@ pub enum FastBukaError {
 
 // Status Enum
 #[contracttype]
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 #[repr(u32)]
 pub enum OrderStatus {
     Waiting = 0,
@@ -130,7 +130,7 @@ pub struct DisputeResolvedEvent {
 
 // Main Order Structure
 #[contracttype]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Order {
     pub id: u128,
     pub user: Address,
