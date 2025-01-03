@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use crate::{datatypes::Order, datatypes::OrderStatus, FastBukaContract, FastBukaContractClient};
+use crate::{datatypes::Order, datatypes::OrderStatus, datatypes::FastBukaError, FastBukaContract, FastBukaContractClient};
 use soroban_sdk::{testutils::Address as _, Address, Env, String, IntoVal, Symbol};
 use crate::token::token::{Token, TokenClient};
 extern crate std;
@@ -94,4 +94,43 @@ fn test_get_all_orders() {
    assert_eq!(orders.len(), 2);
    assert_eq!(orders.get(0).unwrap().amount, amount1);
    assert_eq!(orders.get(1).unwrap().amount, amount2);
+}
+
+#[test]
+fn test_update_order_status_by_vendor() {
+    let env = Env::default();
+    env.mock_all_auths();
+    
+    let contract_id = env.register(FastBukaContract, ());
+    let client = FastBukaContractClient::new(&env, &contract_id);
+    
+    // Setup test accounts
+    let admin = Address::generate(&env);
+    let user = Address::generate(&env);
+    let vendor = Address::generate(&env);
+    
+    // Setup token and amounts
+    let usdc_token = create_token(&env, &admin);
+    let token_address = usdc_token.address.clone();
+    let total_amount: i128 = 1000;
+    let rider_fee: i128 = 100;
+    
+    // Mint tokens for testing
+    usdc_token.mint(&user, &total_amount);
+    
+    std::println!("\nTest Setup:");
+    std::println!("Vendor: {:?}", vendor);
+    
+    // Create an order
+    let order_id = client.create_order(&user, &token_address, &vendor, &total_amount, &rider_fee);
+    std::println!("Created order with ID: {}", order_id);
+    
+    // Update order status with vendor
+    let confirmation = client.update_order_status(&order_id, &vendor);
+    std::println!("Confirmation code: {:?}", confirmation.unwrap());
+    let updated_order = client.get_order(&order_id);
+    
+    // Verify status updated and confirmation number generated
+    assert_eq!(updated_order.status, OrderStatus::ReadyForPickup);
+    assert!(updated_order.confirmation_number.is_some());
 }

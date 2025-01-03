@@ -6,7 +6,7 @@ use crate::interface::{
 use soroban_sdk::token::Client as TokenClient;
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, String, Symbol, Vec};
 
-
+extern crate std;
 
 #[contract]
 pub struct FastBukaContract;
@@ -230,20 +230,60 @@ impl VendorOperations for FastBukaContract {
     }
 
 
-    // Helper function to generate confirmation order for a customer
+    // Helper function to generate confirmation order for
     fn generate_confirmation_number(env: &Env) -> u32 {
         // Get current timestamp
-        let timestamp = env.ledger().timestamp();
+        let timestamp = env.ledger().sequence();
+        std::println!("Timestamp in function: {}", timestamp);
+    
         
         // Get a random component using timestamp
         let random_component = timestamp % 10000;
         
         // Ensure number is between 1000-9999
         let confirmation = 1000 + (random_component as u32);
+    
         
         confirmation
     }
 }
+
+
+// #[contractimpl]
+// impl RiderOperations for FastBukaContract {
+//     fn pickup_order(
+//         env: Env,
+//         order_id: Symbol,
+//         rider: Address,
+//         confirmation_number: u32,
+//     ) -> Result<(), FastBukaError> {
+//         let mut order: Order = env.storage().get(&order_id)
+//             .ok_or(FastBukaError::OrderNotFound)?;
+
+//         if order.status != OrderStatus::ReadyForPickup {
+//             return Err(FastBukaError::OrderNotReady);
+//         }
+
+//         if order.confirmation_number != Some(confirmation_number) {
+//             return Err(FastBukaError::InvalidConfirmationNumber);
+//         }
+
+//         order.rider = Some(rider.clone());
+//         order.status = OrderStatus::PickedUp;
+//         env.storage().set(&order_id, &order);
+
+//         env.events().publish((
+//             Symbol::new(&env, "order_picked_up"),
+//             OrderPickedUpEvent {
+//                 order_id,
+//                 rider,
+//             },
+//         ));
+
+//         Ok(())
+//     }
+// }
+
 
 // #[contractimpl]
 // impl UserOperations for FastBukaContract {
@@ -280,40 +320,6 @@ impl VendorOperations for FastBukaContract {
 //     }
 // }
 
-// #[contractimpl]
-// impl RiderOperations for FastBukaContract {
-//     fn pickup_order(
-//         env: Env,
-//         order_id: Symbol,
-//         rider: Address,
-//         confirmation_number: u32,
-//     ) -> Result<(), FastBukaError> {
-//         let mut order: Order = env.storage().get(&order_id)
-//             .ok_or(FastBukaError::OrderNotFound)?;
-
-//         if order.status != OrderStatus::ReadyForPickup {
-//             return Err(FastBukaError::OrderNotReady);
-//         }
-
-//         if order.confirmation_number != Some(confirmation_number) {
-//             return Err(FastBukaError::InvalidConfirmationNumber);
-//         }
-
-//         order.rider = Some(rider.clone());
-//         order.status = OrderStatus::PickedUp;
-//         env.storage().set(&order_id, &order);
-
-//         env.events().publish((
-//             Symbol::new(&env, "order_picked_up"),
-//             OrderPickedUpEvent {
-//                 order_id,
-//                 rider,
-//             },
-//         ));
-
-//         Ok(())
-//     }
-// }
 
 // #[contractimpl]
 // impl AdminOperations for FastBukaContract {
