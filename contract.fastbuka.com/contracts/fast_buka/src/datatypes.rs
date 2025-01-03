@@ -61,15 +61,13 @@ pub enum FastBukaError {
 #[repr(u32)]
 pub enum OrderStatus {
     Waiting = 0,
-    Accepted = 1,
-    Preparing = 2,
-    ReadyForPickup = 3,
-    PickedUp = 4,
-    Delivered = 5,
-    Completed = 6,
-    Cancelled = 7,
-    Disputed = 8,
-    Resolved = 9,
+    ReadyForPickup = 1,
+    PickedUp = 2,
+    Delivered = 3,
+    Completed = 4,
+    Cancelled = 5,
+    Disputed = 6,
+    Resolved = 7,
 }
 
 #[contracttype]
