@@ -14,8 +14,9 @@ pub trait OrderManagement {
 }
 
 pub trait VendorOperations {
-    fn update_order_status(env: Env, order_id: u128, new_status: OrderStatus) -> Result<Option<u32>, FastBukaError>;
-    fn get_vendor_pending_orders(env: Env, vendor: Address) -> Vec<Symbol>;
+    fn update_order_status(env: Env, order_id: u128, vendor: Address) -> Result<Option<u32>, FastBukaError>;
+    fn get_vendor_pending_orders(env: Env, vendor: Address) -> Result<Vec<Order>, FastBukaError> ;
+    fn generate_confirmation_number(env: &Env) -> u32;
 }
 
 pub trait UserOperations {

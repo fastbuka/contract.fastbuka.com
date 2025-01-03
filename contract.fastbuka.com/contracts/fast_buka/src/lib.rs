@@ -94,6 +94,7 @@ impl OrderManagement for FastBukaContract {
             .ok_or(FastBukaError::OrderNotFound)
     }
 
+    // WRITE A TEST FOR THS AND ADD CHECKS 
     fn complete_order(env: Env, order_id: u128) -> Result<(), FastBukaError> {
         // must add:  only the customer should be able to call this function.
 
@@ -184,59 +185,65 @@ impl OrderManagement for FastBukaContract {
     }
 }
 
-// #[contractimpl]
-// impl VendorOperations for FastBukaContract {
-//     fn update_order_status(
-//         env: Env,
-//         order_id: Symbol,
-//         new_status: OrderStatus,
-//     ) -> Result<Option<u32>, FastBukaError> {
-//         let mut order: Order = env.storage().get(&order_id)
-//             .ok_or(FastBukaError::OrderNotFound)?;
+#[contractimpl]
+impl VendorOperations for FastBukaContract {
 
-//         if &env.invoker() != &order.vendor {
-//             return Err(FastBukaError::UnauthorizedAccess);
-//         }
+    // vendor prepare a order and send it up for picku by rider
+    fn update_order_status(env: Env, order_id: u128, vendor: Address) -> Result<Option<u32>, FastBukaError> {
+        let mut order: Order = env.storage().persistent().get::<u128, Order>(&order_id)
+            .ok_or_else(|| { FastBukaError::OrderNotFound })?;
+    
+        if &vendor != &order.vendor {
+            return Err(FastBukaError::UnauthorizedAccess);
+        }
+    
+        let confirmation_number = Self::generate_confirmation_number(&env);
+        order.confirmation_number = Some(confirmation_number);
+        order.status = OrderStatus::ReadyForPickup;
+    
+        env.storage().persistent().set(&order_id, &order);
+        
+        Ok(order.confirmation_number)
+    }
+        
 
-//         let old_status = order.status.clone();
-//         match (order.status, new_status) {
-//             (OrderStatus::Waiting, OrderStatus::Accepted) => (),
-//             (OrderStatus::Accepted, OrderStatus::Preparing) => (),
-//             (OrderStatus::Preparing, OrderStatus::ReadyForPickup) => {
-//                 let confirmation_number = FastBukaContract::generate_confirmation_number(&env);
-//                 order.confirmation_number = Some(confirmation_number);
+    // Get pending orders partaining to a specific vendor.
+    fn get_vendor_pending_orders(env: Env, vendor: Address) -> Result<Vec<Order>, FastBukaError> {
+        let count = Self::get_order_count(&env);
+        let mut vendor_orders = Vec::new(&env);
+        
+        let mut current_id: u128 = 1;
+        while current_id <= count {
+            if let Some(order) = env.storage().persistent().get::<u128, Order>(&current_id) {
+                if order.vendor == vendor {
+                    vendor_orders.push_back(order);
+                }
+            }
+            current_id += 1;
+        }
+        
+        if vendor_orders.is_empty() {
+            return Err(FastBukaError::OrderNotFound);
+        }
+        
+        Ok(vendor_orders)
+    }
 
-//                 env.events().publish((
-//                     Symbol::new(&env, "confirmation_generated"),
-//                     ConfirmationGeneratedEvent {
-//                         order_id: order_id.clone(),
-//                         vendor: order.vendor.clone(),
-//                     },
-//                 ));
-//             },
-//             _ => return Err(FastBukaError::InvalidStatusTransition),
-//         }
 
-//         order.status = new_status.clone();
-//         env.storage().set(&order_id, &order);
-
-//         env.events().publish((
-//             Symbol::new(&env, "status_updated"),
-//             OrderStatusUpdatedEvent {
-//                 order_id,
-//                 old_status,
-//                 new_status,
-//             },
-//         ));
-
-//         Ok(order.confirmation_number)
-//     }
-
-//     fn get_vendor_pending_orders(env: Env, vendor: Address) -> Vec<Symbol> {
-//         let pending_key = Symbol::new(&env, &format!("pending_{}", &vendor));
-//         env.storage().get(&pending_key).unwrap_or(Vec::new(&env))
-//     }
-// }
+    // Helper function to generate confirmation order for a customer
+    fn generate_confirmation_number(env: &Env) -> u32 {
+        // Get current timestamp
+        let timestamp = env.ledger().timestamp();
+        
+        // Get a random component using timestamp
+        let random_component = timestamp % 10000;
+        
+        // Ensure number is between 1000-9999
+        let confirmation = 1000 + (random_component as u32);
+        
+        confirmation
+    }
+}
 
 // #[contractimpl]
 // impl UserOperations for FastBukaContract {
