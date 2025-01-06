@@ -127,10 +127,39 @@ fn test_update_order_status_by_vendor() {
     
     // Update order status with vendor
     let confirmation = client.update_order_status(&order_id, &vendor);
-    std::println!("Confirmation code: {:?}", confirmation.unwrap());
+    std::println!("Confirmation code: {:?}", confirmation);
     let updated_order = client.get_order(&order_id);
     
     // Verify status updated and confirmation number generated
     assert_eq!(updated_order.status, OrderStatus::ReadyForPickup);
     assert!(updated_order.confirmation_number.is_some());
 }
+
+#[test]
+#[should_panic]
+fn test_update_order_status_by_wrong_vendor() {
+    let env = Env::default();
+    env.mock_all_auths();
+    
+    let contract_id = env.register(FastBukaContract, ());
+    let client = FastBukaContractClient::new(&env, &contract_id);
+    
+    let admin = Address::generate(&env);
+    let user = Address::generate(&env);
+    let vendor = Address::generate(&env);
+    let wrong_vendor = Address::generate(&env);
+    
+    let usdc_token = create_token(&env, &admin);
+    let token_address = usdc_token.address.clone();
+    let total_amount: i128 = 1000;
+    let rider_fee: i128 = 100;
+    
+    usdc_token.mint(&user, &total_amount);
+    
+    let order_id = client.create_order(&user, &token_address, &vendor, &total_amount, &rider_fee);
+    
+    // This should panic when wrong vendor tries to update
+    client.update_order_status(&order_id, &wrong_vendor);
+}
+
+

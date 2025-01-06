@@ -6,7 +6,7 @@ use crate::interface::{
 use soroban_sdk::token::Client as TokenClient;
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, String, Symbol, Vec};
 
-extern crate std;
+
 
 #[contract]
 pub struct FastBukaContract;
@@ -187,9 +187,9 @@ impl OrderManagement for FastBukaContract {
 
 #[contractimpl]
 impl VendorOperations for FastBukaContract {
+    // Update order status to ReadyForPickup
 
-    // vendor prepare a order and send it up for picku by rider
-    fn update_order_status(env: Env, order_id: u128, vendor: Address) -> Result<Option<u32>, FastBukaError> {
+    fn update_order_status(env: Env, order_id: u128, vendor: Address) -> Result<u32, FastBukaError> {
         let mut order: Order = env.storage().persistent().get::<u128, Order>(&order_id)
             .ok_or_else(|| { FastBukaError::OrderNotFound })?;
     
@@ -198,12 +198,12 @@ impl VendorOperations for FastBukaContract {
         }
     
         let confirmation_number = Self::generate_confirmation_number(&env);
-        order.confirmation_number = Some(confirmation_number);
+        order.confirmation_number = Some(confirmation_number);  // Wrap in Some()
         order.status = OrderStatus::ReadyForPickup;
     
         env.storage().persistent().set(&order_id, &order);
         
-        Ok(order.confirmation_number)
+        Ok(confirmation_number)  // Return the raw u32
     }
         
 
@@ -234,7 +234,7 @@ impl VendorOperations for FastBukaContract {
     fn generate_confirmation_number(env: &Env) -> u32 {
         // Get current timestamp
         let timestamp = env.ledger().sequence();
-        std::println!("Timestamp in function: {}", timestamp);
+        // std::println!("Timestamp in function: {}", timestamp);
     
         
         // Get a random component using timestamp
