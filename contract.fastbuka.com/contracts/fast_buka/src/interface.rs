@@ -14,13 +14,13 @@ pub trait OrderManagement {
 }
 
 pub trait VendorOperations {
-    fn update_order_status(env: Env, order_id: u128, vendor: Address) -> Result<Option<u32>, FastBukaError>;
+    fn update_order_status(env: Env, order_id: u128, vendor: Address) -> Result<u32, FastBukaError>;
     fn get_vendor_pending_orders(env: Env, vendor: Address) -> Result<Vec<Order>, FastBukaError> ;
     fn generate_confirmation_number(env: &Env) -> u32;
 }
 
 pub trait UserOperations {
-    fn get_confirmation_number(env: Env, order_id: u128) -> Result<Option<u32>, FastBukaError>;
+    fn get_confirmation_number(env: Env, order_id: u128) -> Result<u32, FastBukaError>;
     fn check_order_ready(env: Env, order_id: u128) -> Result<bool, FastBukaError>;
 }
 
