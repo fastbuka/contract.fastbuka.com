@@ -207,27 +207,30 @@ impl VendorOperations for FastBukaContract {
     }
         
 
-    // Get pending orders partaining to a specific vendor.
+    
     fn get_vendor_pending_orders(env: Env, vendor: Address) -> Result<Vec<Order>, FastBukaError> {
-        let count = Self::get_order_count(&env);
-        let mut vendor_orders = Vec::new(&env);
-        
-        let mut current_id: u128 = 1;
-        while current_id <= count {
+        let count = Self::get_order_count(&env); // Get total number of orders
+        let mut vendor_orders = Vec::new(&env); // Initialize vector for vendor orders
+    
+        // Iterate through all order IDs
+        for current_id in 1..=count {
+            // Try to get the order from storage
             if let Some(order) = env.storage().persistent().get::<u128, Order>(&current_id) {
+                // Check if the vendor matches
                 if order.vendor == vendor {
                     vendor_orders.push_back(order);
                 }
             }
-            current_id += 1;
         }
-        
+    
+        // Return error if no orders are found
         if vendor_orders.is_empty() {
             return Err(FastBukaError::OrderNotFound);
         }
-        
+    
         Ok(vendor_orders)
     }
+    
 
 
     // Helper function to generate confirmation order for
