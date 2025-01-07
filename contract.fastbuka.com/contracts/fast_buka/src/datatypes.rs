@@ -51,6 +51,9 @@ pub enum FastBukaError {
     CalculationError = 16,
     RiderPaymentFailed = 17,
     DepositPaymentFailed = 18,
+    OrderAlreadyDelivered = 19,
+    OrderNotCompleted = 20,
+    OrderCompleted = 21,
 }
 
 

@@ -105,9 +105,14 @@ impl OrderManagement for FastBukaContract {
             .get(&order_id)
             .ok_or(FastBukaError::OrderNotFound)?;
     
-        // 2. Get order status
+        // 2. delivered by the rider
         if order.status != OrderStatus::Delivered {
             return Err(FastBukaError::OrderNotDelivered);
+        }
+
+        // completed by the customer
+        if order.status != OrderStatus::Completed {
+            return Err(FastBukaError::OrderNotCompleted);
         }
     
         // 3. get token and its client - clone the token address
@@ -232,8 +237,7 @@ impl VendorOperations for FastBukaContract {
     }
     
 
-
-    // Helper function to generate confirmation order for
+    // Helper function to generate confirmation order
     fn generate_confirmation_number(env: &Env) -> u32 {
         // Get current timestamp
         let timestamp = env.ledger().sequence();
@@ -244,12 +248,217 @@ impl VendorOperations for FastBukaContract {
         let random_component = timestamp % 10000;
         
         // Ensure number is between 1000-9999
-        let confirmation = 1000 + (random_component as u32);
-    
-        
+        let confirmation = 1000 + (random_component as u32); 
         confirmation
     }
 }
+
+
+#[contractimpl]
+impl UserOperations for FastBukaContract {
+    fn get_confirmation_number(
+        env: Env,
+        customer: Address,
+        order_id: Symbol,
+    ) -> Result<u32, FastBukaError> {
+        // Verify customer's authorization
+        customer.require_auth();
+
+        // Get order from storage
+        let order: Order = env.storage()
+            .persistent()
+            .get(&order_id)
+            .ok_or(FastBukaError::OrderNotFound)?;
+
+        // Check if the caller is the order's customer
+        if customer != order.user {
+            return Err(FastBukaError::UnauthorizedAccess);
+        }
+
+        // Check if order is in ReadyForPickup status
+        if order.status != OrderStatus::ReadyForPickup {
+            return Err(FastBukaError::OrderNotReady);
+        }
+
+        Ok(order.confirmation_number)
+    }
+
+    fn check_order_status(
+        env: Env,
+        customer: Address,
+        order_id: Symbol,
+    ) -> Result<OrderStatus, FastBukaError> {
+        // Verify customer's authorization
+        customer.require_auth();
+
+        // Get order from storage
+        let order: Order = env.storage()
+            .persistent()
+            .get(&order_id)
+            .ok_or(FastBukaError::OrderNotFound)?;
+
+        // Check if the caller is the order's customer
+        if customer != order.user {
+            return Err(FastBukaError::UnauthorizedAccess);
+        }
+
+        // Return the current order status
+        Ok(order.status)
+    }
+
+    fn user_confirms_order(env: Env, order_id: u128) -> Result<OrderStatus, FastBukaError> {
+        // Get order from storage
+        let order: Order = env.storage()
+            .persistent()
+            .get(&order_id)
+            .ok_or(FastBukaError::OrderNotFound)?;
+    
+        // Require authorization from the order's user
+        order.user.require_auth();
+    
+        // Return error if order is already delivered
+        if order.status == OrderStatus::Completed {
+            return Err(FastBukaError::OrderCompleted);
+        }
+        order.status = OrderStatus::Completed;
+        env.storage().persistent().set(&order_id, &order);
+
+        // Return the current status
+        Ok(order.status)
+    }
+
+
+#[contractimpl]
+impl UserOperations for FastBukaContract {
+    fn get_confirmation_number(
+        env: Env,
+        customer: Address,
+        order_id: u128,
+    ) -> Result<u32, FastBukaError> {
+        // Verify customer's authorization
+        customer.require_auth();
+
+        // Get order from storage
+        let order: Order = env.storage()
+            .persistent()
+            .get(&order_id)
+            .ok_or(FastBukaError::OrderNotFound)?;
+
+        // Check if the caller is the order's customer
+        if customer != order.user {
+            return Err(FastBukaError::UnauthorizedAccess);
+        }
+
+        // Check if order is in ReadyForPickup status
+        if order.status != OrderStatus::ReadyForPickup {
+            return Err(FastBukaError::OrderNotReady);
+        }
+
+        // Return confirmation number if it exists
+        order.confirmation_number.ok_or(FastBukaError::InvalidConfirmationNumber)
+    }
+
+    fn user_confirms_order(env: Env, order_id: u128) -> Result<(), FastBukaError> {
+        // Get order from storage
+        let mut order: Order = env.storage()
+            .persistent()
+            .get(&order_id)
+            .ok_or(FastBukaError::OrderNotFound)?;
+
+        // Require authorization from the order's user
+        order.user.require_auth();
+
+        // Check if order is in Delivered status
+        if order.status != OrderStatus::Delivered {
+            return Err(FastBukaError::InvalidStatus);
+        }
+
+        // Update order status to Completed
+        order.status = OrderStatus::Completed;
+        env.storage().persistent().set(&order_id, &order);
+
+        Ok(())
+    }
+
+    fn check_order_status(
+        env: Env,
+        customer: Address,
+        order_id: u128,
+    ) -> Result<bool, FastBukaError> {
+        // Verify customer's authorization
+        customer.require_auth();
+
+        // Get order from storage
+        let order: Order = env.storage()
+            .persistent()
+            .get(&order_id)
+            .ok_or(FastBukaError::OrderNotFound)?;
+
+        // Check if the caller is the order's customer
+        if customer != order.user {
+            return Err(FastBukaError::UnauthorizedAccess);
+        }
+
+        // Return the order status
+        Ok(matches!(order.status, 
+            OrderStatus::ReadyForPickup | 
+            OrderStatus::PickedUp | 
+            OrderStatus::Delivered | 
+            OrderStatus::Completed
+        ))
+    }
+
+    fn raise_dispute(
+        env: Env,
+        order_id: u128,
+        address: Address,
+        reason: String,
+    ) -> Result<(), FastBukaError> {
+        // Verify caller's authorization
+        address.require_auth();
+
+        // Get order from storage
+        let mut order: Order = env.storage()
+            .persistent()
+            .get(&order_id)
+            .ok_or(FastBukaError::OrderNotFound)?;
+
+        // Check if caller is the order's customer
+        if address != order.user {
+            return Err(FastBukaError::UnauthorizedAccess);
+        }
+
+        // Check if order is in a valid status for dispute
+        if order.status != OrderStatus::Delivered {
+            return Err(FastBukaError::OrderNotDelivered);
+        }
+
+        // check if order has already been marked as completed
+        if order.status == OrderStatus::Completed {
+            return Err(FastBukaError::OrderCompleted)
+        }
+
+        // Check if dispute already exists
+        if order.status == OrderStatus::Disputed {
+            return Err(FastBukaError::DisputeAlreadyExists);
+        }
+
+        // Update order status to Disputed
+        order.status = OrderStatus::Disputed;
+        env.storage().persistent().set(&order_id, &order);
+
+        // Publish dispute event
+        env.events().publish(
+            (Symbol::new(&env, "dispute_raised"), order_id),
+            (address, reason.clone())
+        );
+        Ok(())
+    }
+}
+
+
+}
+
 
 
 // #[contractimpl]
@@ -287,41 +496,6 @@ impl VendorOperations for FastBukaContract {
 //     }
 // }
 
-
-// #[contractimpl]
-// impl UserOperations for FastBukaContract {
-//     fn get_confirmation_number(
-//         env: Env,
-//         order_id: Symbol,
-//     ) -> Result<Option<u32>, FastBukaError> {
-//         let order: Order = env.storage().get(&order_id)
-//             .ok_or(FastBukaError::OrderNotFound)?;
-
-//         if &env.invoker() != &order.user {
-//             return Err(FastBukaError::UnauthorizedAccess);
-//         }
-
-//         if order.status != OrderStatus::ReadyForPickup {
-//             return Err(FastBukaError::OrderNotReady);
-//         }
-
-//         Ok(order.confirmation_number)
-//     }
-
-//     fn check_order_ready(
-//         env: Env,
-//         order_id: Symbol,
-//     ) -> Result<bool, FastBukaError> {
-//         let order: Order = env.storage().get(&order_id)
-//             .ok_or(FastBukaError::OrderNotFound)?;
-
-//         if &env.invoker() != &order.user {
-//             return Err(FastBukaError::UnauthorizedAccess);
-//         }
-
-//         Ok(order.status == OrderStatus::ReadyForPickup && order.confirmation_number.is_some())
-//     }
-// }
 
 
 // #[contractimpl]

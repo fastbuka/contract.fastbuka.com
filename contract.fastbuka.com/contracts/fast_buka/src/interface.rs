@@ -1,7 +1,7 @@
 use crate::datatypes::{FastBukaError, Order, OrderStatus, DisputeResolution};
 use soroban_sdk::{
     Address, Env,
-    Symbol, Vec
+    Symbol, Vec, String
 };
 
 
@@ -20,22 +20,24 @@ pub trait VendorOperations {
 }
 
 pub trait UserOperations {
-    fn get_confirmation_number(env: Env, order_id: u128) -> Result<u32, FastBukaError>;
-    fn check_order_ready(env: Env, order_id: u128) -> Result<bool, FastBukaError>;
+    fn get_confirmation_number(env: Env, customer: Address, order_id: u128) -> Result<u32, FastBukaError>;
+    fn check_order_status(env: Env, customer: Address, order_id: Symbol) -> Result<OrderStatus, FastBukaError>;
+    fn user_confirms_order(env: Env, order_id: u128) ->Result<(), FastBukaError>;
+    fn raise_dispute(env: Env, order_id: u128, address: Address, reason: String) -> Result<(), FastBukaError>;
 }
 
+
 pub trait RiderOperations {
+    fn get_confirmation_number(env: Env, order_id: u128) -> Result<u32, FastBukaError>;
     fn pickup_order(env: Env, order_id: u128, rider: Address, confirmation_number: u32) -> Result<(), FastBukaError>;
+    fn rider_confirms_delivery(env: Env, order_id: u128) ->Result<(), FastBukaError>;
+    fn raise_dispute(env: Env, order_id: u128, address: Address, reason: Symbol) -> Result<(), FastBukaError>;
 }
+
 
 pub trait AdminOperations {
     fn __constructor(env: Env, admin: Address, token: Address);
     fn resolve_dispute(env: Env, order_id: u128, resolution: DisputeResolution) -> Result<(), FastBukaError>;
-    fn get_disputed_orders(env: Env) -> Vec<Symbol>;
+    fn get_all_disputed_orders(env: Env) -> Vec<Symbol>;
     fn get_dispute_details(env: Env, order_id: u128) -> Result<(Address, Symbol), FastBukaError>;
-}
-
-
-pub trait DisputeOperations {
-    fn raise_dispute(env: Env, order_id: u128, reason: Symbol) -> Result<(), FastBukaError>;
-}
+}  
