@@ -1,6 +1,6 @@
 use soroban_sdk::{
     Address,
-    Symbol, contracterror, contracttype, String
+    contracterror, contracttype, String
 };
 
 
