@@ -27,17 +27,17 @@ pub trait UserOperations {
 }
 
 
-pub trait RiderOperations {
-    fn get_confirmation_number(env: Env, order_id: u128) -> Result<u32, FastBukaError>;
-    fn pickup_order(env: Env, order_id: u128, rider: Address, confirmation_number: u32) -> Result<(), FastBukaError>;
-    fn rider_confirms_delivery(env: Env, order_id: u128) ->Result<(), FastBukaError>;
-    fn raise_dispute(env: Env, order_id: u128, address: Address, reason: Symbol) -> Result<(), FastBukaError>;
-}
+// pub trait RiderOperations {
+//     fn get_confirmation_number(env: Env, order_id: u128) -> Result<u32, FastBukaError>;
+//     fn pickup_order(env: Env, order_id: u128, rider: Address, confirmation_number: u32) -> Result<(), FastBukaError>;
+//     fn rider_confirms_delivery(env: Env, order_id: u128) ->Result<(), FastBukaError>;
+//     fn raise_dispute(env: Env, order_id: u128, address: Address, reason: Symbol) -> Result<(), FastBukaError>;
+// }
 
 
-pub trait AdminOperations {
-    fn __constructor(env: Env, admin: Address, token: Address);
-    fn resolve_dispute(env: Env, order_id: u128, resolution: DisputeResolution) -> Result<(), FastBukaError>;
-    fn get_all_disputed_orders(env: Env) -> Vec<Symbol>;
-    fn get_dispute_details(env: Env, order_id: u128) -> Result<(Address, Symbol), FastBukaError>;
-}  
+// pub trait AdminOperations {
+//     fn __constructor(env: Env, admin: Address, token: Address);
+//     fn resolve_dispute(env: Env, order_id: u128, resolution: DisputeResolution) -> Result<(), FastBukaError>;
+//     fn get_all_disputed_orders(env: Env) -> Vec<Symbol>;
+//     fn get_dispute_details(env: Env, order_id: u128) -> Result<(Address, Symbol), FastBukaError>;
+// }  
