@@ -1,6 +1,5 @@
 #![cfg(test)]
 use crate::{
-    datatypes::{OrderStatus},
     FastBukaContract,
     FastBukaContractClient
 };
