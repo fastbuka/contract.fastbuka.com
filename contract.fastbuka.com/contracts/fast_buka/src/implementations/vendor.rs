@@ -70,4 +70,7 @@ impl VendorOperations for FastBukaContract {
         let confirmation = 1000 + (random_component as u32); 
         confirmation
     }
+
+
+    
 }

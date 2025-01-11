@@ -10,10 +10,8 @@ use soroban_sdk::{contractimpl, Address, Env, String, Symbol};
 
 #[contractimpl]
 impl UserOperations for FastBukaContract {
-    
-    
 
-    fn get_confirmation_number(
+    fn get_confirmation_number_customer(
         env: Env,
         customer: Address,
         order_id: u128,
@@ -89,7 +87,7 @@ impl UserOperations for FastBukaContract {
     }
 
 
-    fn raise_dispute(
+    fn customer_raise_dispute(
         env: Env,
         order_id: u128,
         address: Address,
