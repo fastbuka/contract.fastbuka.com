@@ -1,8 +1,6 @@
 #![no_std]
 use soroban_sdk::{contract};
 
-
-
 #[contract]
 pub struct FastBukaContract;
 
@@ -10,7 +8,7 @@ pub struct FastBukaContract;
 pub use implementations::{
     // admin::*,
     order::*,
-    // rider::*,
+    rider::*,
     user::*,
     vendor::*,
 };

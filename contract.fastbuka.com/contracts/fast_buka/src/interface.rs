@@ -19,20 +19,19 @@ pub trait VendorOperations {
     fn generate_confirmation_number(env: &Env) -> u32;
 }
 
-pub trait UserOperations {
-    fn get_confirmation_number(env: Env, customer: Address, order_id: u128) -> Result<u32, FastBukaError>;
-    fn check_order_status(env: Env, customer: Address, order_id: Symbol) -> Result<OrderStatus, FastBukaError>;
-    fn user_confirms_order(env: Env, order_id: u128) ->Result<(), FastBukaError>;
-    fn raise_dispute(env: Env, order_id: u128, address: Address, reason: String) -> Result<(), FastBukaError>;
+pub trait RiderOperations {
+    fn pickup_order(env: Env, order_id: u128, rider: Address) -> Result<(), FastBukaError>;
+    fn get_confirmation_number_rider(env: Env, order_id: u128) -> Result<u32, FastBukaError>;
+    fn rider_confirms_delivery(env: Env, order_id: u128) ->Result<(), FastBukaError>;
+    fn rider_raise_dispute(env: Env, order_id: u128, address: Address, reason: String) -> Result<(), FastBukaError>;
 }
 
-
-// pub trait RiderOperations {
-//     fn get_confirmation_number(env: Env, order_id: u128) -> Result<u32, FastBukaError>;
-//     fn pickup_order(env: Env, order_id: u128, rider: Address, confirmation_number: u32) -> Result<(), FastBukaError>;
-//     fn rider_confirms_delivery(env: Env, order_id: u128) ->Result<(), FastBukaError>;
-//     fn raise_dispute(env: Env, order_id: u128, address: Address, reason: Symbol) -> Result<(), FastBukaError>;
-// }
+pub trait UserOperations {
+    fn get_confirmation_number_customer(env: Env, customer: Address, order_id: u128) -> Result<u32, FastBukaError>;
+    fn check_order_status(env: Env, customer: Address, order_id: Symbol) -> Result<OrderStatus, FastBukaError>;
+    fn user_confirms_order(env: Env, order_id: u128) ->Result<(), FastBukaError>;
+    fn customer_raise_dispute(env: Env, order_id: u128, address: Address, reason: String) -> Result<(), FastBukaError>;
+}
 
 
 // pub trait AdminOperations {

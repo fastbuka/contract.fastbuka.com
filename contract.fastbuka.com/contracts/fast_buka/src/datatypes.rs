@@ -54,6 +54,7 @@ pub enum FastBukaError {
     OrderAlreadyDelivered = 19,
     OrderNotCompleted = 20,
     OrderCompleted = 21,
+    OrderNotPickedUp = 22,
 }
 
 
