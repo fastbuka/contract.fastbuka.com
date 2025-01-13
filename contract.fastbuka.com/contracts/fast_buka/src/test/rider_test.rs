@@ -124,7 +124,6 @@ fn test_pickup_order_not_ready() {
     let user = Address::generate(&env);
     let vendor = Address::generate(&env);
     let rider = Address::generate(&env);
-    let reason = String::from_str(&env, "Order details incorrect");
     
 
     // Create and setup token

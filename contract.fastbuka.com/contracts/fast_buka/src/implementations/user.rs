@@ -43,7 +43,7 @@ impl UserOperations for FastBukaContract {
     fn check_order_status(
         env: Env,
         customer: Address,
-        order_id: Symbol,
+        order_id: u128,
     ) -> Result<OrderStatus, FastBukaError> {
         // Verify customer's authorization
         customer.require_auth();
@@ -64,7 +64,7 @@ impl UserOperations for FastBukaContract {
     }
 
 
-    fn user_confirms_order(env: Env, order_id: u128) -> Result<(), FastBukaError> {
+    fn user_confirms_order(env: Env, order_id: u128, address: Address) -> Result<(), FastBukaError> {
         // Get order from storage
         let mut order: Order = env.storage()
             .persistent()
@@ -72,7 +72,7 @@ impl UserOperations for FastBukaContract {
             .ok_or(FastBukaError::OrderNotFound)?;
 
         // Require authorization from the order's user
-        order.user.require_auth();
+        address.require_auth();
 
         // Check if order is in Delivered status by Rider
         if order.status != OrderStatus::Delivered {
@@ -114,7 +114,7 @@ impl UserOperations for FastBukaContract {
 
         // check if order has already been marked as completed
         if order.status == OrderStatus::Completed {
-            return Err(FastBukaError::OrderCompleted)
+            return Err(FastBukaError::OrderNotCompleted)
         }
 
         // Check if dispute already exists

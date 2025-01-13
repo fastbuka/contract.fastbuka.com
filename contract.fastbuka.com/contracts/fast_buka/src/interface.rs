@@ -1,7 +1,6 @@
 use crate::datatypes::{FastBukaError, Order, OrderStatus, DisputeResolution};
 use soroban_sdk::{
-    Address, Env,
-    Symbol, Vec, String
+    Address, Env, Vec, String
 };
 
 
@@ -28,8 +27,8 @@ pub trait RiderOperations {
 
 pub trait UserOperations {
     fn get_confirmation_number_customer(env: Env, customer: Address, order_id: u128) -> Result<u32, FastBukaError>;
-    fn check_order_status(env: Env, customer: Address, order_id: Symbol) -> Result<OrderStatus, FastBukaError>;
-    fn user_confirms_order(env: Env, order_id: u128) ->Result<(), FastBukaError>;
+    fn check_order_status(env: Env, customer: Address, order_id: u128) -> Result<OrderStatus, FastBukaError>;
+    fn user_confirms_order(env: Env, order_id: u128, address: Address) ->Result<(), FastBukaError>;
     fn customer_raise_dispute(env: Env, order_id: u128, address: Address, reason: String) -> Result<(), FastBukaError>;
 }
 
