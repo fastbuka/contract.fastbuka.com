@@ -15,7 +15,7 @@ pub enum DataKey {
     Balance(Address),
     Allowance(AllowanceDataKey),
     Admin,
-
+    DisputedOrders,
     // User storage
     Customer(Address),
     CustomerRegId(Address),
@@ -55,9 +55,10 @@ pub enum FastBukaError {
     OrderNotCompleted = 20,
     OrderCompleted = 21,
     OrderNotPickedUp = 22,
+    InsufficientFundsInContract = 23,
+    AlreadyAdmin = 24,
+    CustomerPaymentFailed = 25,
 }
-
-
 
 // Status Enum
 #[contracttype]
@@ -77,9 +78,9 @@ pub enum OrderStatus {
 #[contracttype]
 #[derive(Clone, PartialEq)]
 pub enum DisputeResolution {
-    UserFault,
-    VendorFault,
-    RiderFault,
+    pub CustomerFault,
+    pub VendorFault,
+    pub RiderFault,
 }
 
 // Event Structures
@@ -113,6 +114,7 @@ pub struct OrderPickedUpEvent {
     pub order_id: u128,
     pub rider: Address,
 }
+
 
 #[contracttype]
 #[derive(Clone)]

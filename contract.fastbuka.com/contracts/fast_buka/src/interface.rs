@@ -25,7 +25,7 @@ pub trait RiderOperations {
     fn rider_raise_dispute(env: Env, order_id: u128, address: Address, reason: String) -> Result<(), FastBukaError>;
 }
 
-pub trait UserOperations {
+pub trait CustomerOperations {
     fn get_confirmation_number_customer(env: Env, customer: Address, order_id: u128) -> Result<u32, FastBukaError>;
     fn check_order_status(env: Env, customer: Address, order_id: u128) -> Result<OrderStatus, FastBukaError>;
     fn user_confirms_order(env: Env, order_id: u128, address: Address) ->Result<(), FastBukaError>;
@@ -33,9 +33,10 @@ pub trait UserOperations {
 }
 
 
-// pub trait AdminOperations {
-//     fn __constructor(env: Env, admin: Address, token: Address);
-//     fn resolve_dispute(env: Env, order_id: u128, resolution: DisputeResolution) -> Result<(), FastBukaError>;
-//     fn get_all_disputed_orders(env: Env) -> Vec<Symbol>;
-//     fn get_dispute_details(env: Env, order_id: u128) -> Result<(Address, Symbol), FastBukaError>;
-// }  
+pub trait AdminOperations {
+    fn resolve_dispute(env: Env, order_id: u128, resolution: DisputeResolution, admin: Address) -> Result<(), FastBukaError>;
+    fn add_admin(env: Env, caller: Address, new_admin: Address) -> Result<(), FastBukaError>;
+    fn get_admins(env: Env) -> Vec<Address>;
+    fn remove_admin(env: Env, caller: Address, admin_to_remove: Address) -> Result<(), FastBukaError>;
+    fn get_all_disputed_orders(env: Env) -> Vec<u128>;
+}  

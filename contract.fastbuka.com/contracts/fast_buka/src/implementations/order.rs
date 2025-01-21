@@ -117,6 +117,12 @@ impl OrderManagement for FastBukaContract {
         // 3. get token and its client - clone the token address
         let token = order.token.clone();
         let token_client = TokenClient::new(&env, &token);
+
+        let contract_balance = token_client.balance(&env.current_contract_address());
+
+        if order.amount > contract_balance {
+            return Err(FastBukaError::InsufficientFundsInContract);
+        }
     
         //4. get rider fee
         let rider_amount = order.rider_fee;
