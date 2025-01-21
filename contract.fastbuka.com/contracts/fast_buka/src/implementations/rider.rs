@@ -1,9 +1,9 @@
 use crate::{
-    datatypes::{FastBukaError, Order, OrderStatus},
+    datatypes::{FastBukaError, Order, OrderStatus, DataKey},
     interface::RiderOperations,
     FastBukaContract, FastBukaContractArgs, FastBukaContractClient
 };
-use soroban_sdk::{contractimpl, Address, Env, String, Symbol};
+use soroban_sdk::{contractimpl, Address, Env, String, Symbol, Vec};
 
 
 
@@ -129,6 +129,17 @@ impl RiderOperations for FastBukaContract {
         // Update order status to Disputed
         order.status = OrderStatus::Disputed;
         env.storage().persistent().set(&order_id, &order);
+
+
+        // Add order ID to the disputed orders list
+        let mut disputed_orders: Vec<u128> = env.storage().persistent()
+            .get(&DataKey::DisputedOrders)
+            .unwrap_or_else(|| Vec::new(&env));
+
+        if !disputed_orders.contains(&order_id) {
+            disputed_orders.push_back(order_id);
+            env.storage().persistent().set(&DataKey::DisputedOrders, &disputed_orders);
+        }
 
         // Publish dispute event
         env.events().publish(
