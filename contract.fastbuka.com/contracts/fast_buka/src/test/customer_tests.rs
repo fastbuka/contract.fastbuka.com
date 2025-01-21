@@ -10,7 +10,7 @@ extern crate std;
 
 
 #[test]
-fn test_confirm_order() {
+fn test_customer_complete_order() {
     let env = Env::default();
     env.mock_all_auths();
     
@@ -23,47 +23,42 @@ fn test_confirm_order() {
     let vendor = Address::generate(&env);
     let rider = Address::generate(&env);
     
-    std::println!("Test Setup:");
-    std::println!("Admin: {:?}", admin);
-    std::println!("User: {:?}", user);
-    std::println!("Vendor: {:?}", vendor);
-    std::println!("Rider: {:?}", rider);
-    
     // Create and setup token
     let usdc_token = create_token(&env, &admin);
     let token_address = usdc_token.address.clone();
     let total_amount: i128 = 1000;
     let rider_fee: i128 = 100;
+
+    // Mint tokens to user and record initial balances
     usdc_token.mint(&user, &total_amount);
+    let initial_vendor_balance = usdc_token.balance(&vendor);
+    let initial_rider_balance = usdc_token.balance(&rider);
     
     // Create order
     let order_id = client.create_order(&user, &token_address, &vendor, &total_amount, &rider_fee);
-    std::println!("\nOrder created with ID: {}", order_id);
-
-    // Update order status with vendor
-    let confirmation = client.update_order_status(&order_id, &vendor);
-    std::println!("Confirmation code: {:?}", confirmation);
-
     
-
-    // Test pickup_order
+    // Get order through stages
+    client.update_order_status(&order_id, &vendor);
     client.pickup_order(&order_id, &rider);
-    let order = client.get_order(&order_id);
-    let rider_confirm_no = client.get_confirmation_number_rider(&order_id);
-    std::println!("rider_confirm_no: {}", rider_confirm_no);
-
-    assert_eq!(order.status, OrderStatus::PickedUp);
-    assert_eq!(order.rider, Some(rider));
-    
-    // Test rider_confirms_delivery
     client.rider_confirms_delivery(&order_id);
+    
+    // Verify order is in Delivered state
     let order = client.get_order(&order_id);
     assert_eq!(order.status, OrderStatus::Delivered);
-
-    // Test user confirms delivery
+    
+    // Complete order as customer
     client.user_confirms_order(&order_id, &user);
-    let order = client.get_order(&order_id);
-    assert_eq!(order.status, OrderStatus::Completed);
+
+    // Verify final state
+    let completed_order = client.get_order(&order_id);
+    assert_eq!(completed_order.status, OrderStatus::Completed);
+    
+    // Verify payments
+    let final_vendor_balance = usdc_token.balance(&vendor);
+    let final_rider_balance = usdc_token.balance(&rider);
+    
+    assert_eq!(final_vendor_balance, initial_vendor_balance + (total_amount - rider_fee));
+    assert_eq!(final_rider_balance, initial_rider_balance + rider_fee);
 }
 
 #[test]

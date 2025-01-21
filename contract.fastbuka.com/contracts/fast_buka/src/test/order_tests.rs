@@ -93,3 +93,36 @@ fn test_get_all_orders() {
    assert_eq!(orders.get(1).unwrap().amount, amount2);
 }
 
+
+#[test]
+#[should_panic]
+fn test_wrong_customer_complete_order() {
+    let env = Env::default();
+    env.mock_all_auths();
+    
+    let contract_id = env.register(FastBukaContract, ());
+    let client = FastBukaContractClient::new(&env, &contract_id);
+    
+    let admin = Address::generate(&env);
+    let user = Address::generate(&env);
+    let wrong_user = Address::generate(&env);
+    let vendor = Address::generate(&env);
+    let rider = Address::generate(&env);
+    
+    let usdc_token = create_token(&env, &admin);
+    let token_address = usdc_token.address.clone();
+    let total_amount: i128 = 1000;
+    let rider_fee: i128 = 100;
+
+    usdc_token.mint(&user, &total_amount);
+    
+    let order_id = client.create_order(&user, &token_address, &vendor, &total_amount, &rider_fee);
+    
+    // Get order to delivered state
+    client.update_order_status(&order_id, &vendor);
+    client.pickup_order(&order_id, &rider);
+    client.rider_confirms_delivery(&order_id);
+    
+    // Try to complete with wrong customer (should panic)
+    client.user_confirms_order(&order_id, &wrong_user);
+}

@@ -93,10 +93,7 @@ impl OrderManagement for FastBukaContract {
 
 
 
-    // COME BACK LATER & WRITE A TEST FOR THS AND ADD CHECKS 
-    fn complete_order(env: Env, order_id: u128) -> Result<(), FastBukaError> {
-        // must add:  only the customer should be able to call this function.
-
+    fn user_confirms_order(env: Env, order_id: u128, customer: Address) -> Result<(), FastBukaError> {
         // 1. Get order
         let mut order: Order = env
             .storage()
@@ -104,36 +101,40 @@ impl OrderManagement for FastBukaContract {
             .get(&order_id)
             .ok_or(FastBukaError::OrderNotFound)?;
     
-        // 2. delivered by the rider
+        // get customer address
+        if order.user != customer {
+            return Err(FastBukaError::NotACustomer);
+        }
+    
+        // 2. Check if already completed
+        if order.status == OrderStatus::Completed {
+            return Err(FastBukaError::OrderAlreadyCompleted);
+        }
+    
+        // 3. Check if delivered by the rider
         if order.status != OrderStatus::Delivered {
             return Err(FastBukaError::OrderNotDelivered);
         }
-
-        // completed by the customer
-        if order.status != OrderStatus::Completed {
-            return Err(FastBukaError::OrderNotCompleted);
-        }
     
-        // 3. get token and its client - clone the token address
+        // 4. get token and its client
         let token = order.token.clone();
         let token_client = TokenClient::new(&env, &token);
-
+    
         let contract_balance = token_client.balance(&env.current_contract_address());
-
         if order.amount > contract_balance {
             return Err(FastBukaError::InsufficientFundsInContract);
         }
     
-        //4. get rider fee
+        // 5. get rider fee
         let rider_amount = order.rider_fee;
     
-        // 5. get vendor total money
+        // 6. get vendor total money
         let vendor_amount = order
             .amount
             .checked_sub(rider_amount)
             .ok_or(FastBukaError::CalculationError)?;
     
-        // 6. transfer money to vendor - clone the vendor address
+        // 7. transfer money to vendor
         let transfer_result = token_client.try_transfer(
             &env.current_contract_address(), 
             &order.vendor.clone(), 
@@ -144,7 +145,7 @@ impl OrderManagement for FastBukaContract {
             return Err(FastBukaError::VendorPaymentFailed);
         }
     
-        // 7. transfer money to rider - clone the rider address if present
+        // 8. transfer money to rider
         let rider_address = order.rider.as_ref().ok_or(FastBukaError::OrderNotFound)?;
         let transfer_result = token_client.try_transfer(
             &env.current_contract_address(), 
@@ -156,13 +157,12 @@ impl OrderManagement for FastBukaContract {
             return Err(FastBukaError::RiderPaymentFailed);
         }
     
-        // 8. update status
+        // 9. update status
         order.status = OrderStatus::Completed;
         env.storage().persistent().set(&order_id, &order);
     
         Ok(())
     }
-
 
 
 
