@@ -58,6 +58,8 @@ pub enum FastBukaError {
     InsufficientFundsInContract = 23,
     AlreadyAdmin = 24,
     CustomerPaymentFailed = 25,
+    NotACustomer = 26,
+    OrderAlreadyCompleted = 27,
 }
 
 // Status Enum
