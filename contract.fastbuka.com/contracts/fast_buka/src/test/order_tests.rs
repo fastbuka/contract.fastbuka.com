@@ -12,10 +12,13 @@ extern crate std;
 fn test_create_order_and_get_order() {
    let env = Env::default();
    env.mock_all_auths();
-   let contract_id = env.register(FastBukaContract, ());
-   let client = FastBukaContractClient::new(&env, &contract_id);
 
    let admin = Address::generate(&env);
+
+   let contract_id = env.register(FastBukaContract, (admin.clone(),));
+   let client = FastBukaContractClient::new(&env, &contract_id);
+
+   
    let user = Address::generate(&env);
    let vendor = Address::generate(&env);
    let total_amount: i128 = 1000;
@@ -56,10 +59,13 @@ fn test_create_order_and_get_order() {
 fn test_get_all_orders() {
    let env = Env::default();
    env.mock_all_auths();
-   let contract_id = env.register(FastBukaContract, ());
-   let client = FastBukaContractClient::new(&env, &contract_id);
 
    let admin = Address::generate(&env);
+
+   let contract_id = env.register(FastBukaContract, (admin.clone(),));
+   let client = FastBukaContractClient::new(&env, &contract_id);
+
+   
    let user1 = Address::generate(&env);
    let user2 = Address::generate(&env);
    let vendor = Address::generate(&env);
@@ -99,11 +105,13 @@ fn test_get_all_orders() {
 fn test_wrong_customer_complete_order() {
     let env = Env::default();
     env.mock_all_auths();
+
+    let admin = Address::generate(&env);
     
-    let contract_id = env.register(FastBukaContract, ());
+    let contract_id = env.register(FastBukaContract, (admin.clone(),));
     let client = FastBukaContractClient::new(&env, &contract_id);
     
-    let admin = Address::generate(&env);
+    // let admin = Address::generate(&env);
     let user = Address::generate(&env);
     let wrong_user = Address::generate(&env);
     let vendor = Address::generate(&env);

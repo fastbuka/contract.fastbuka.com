@@ -7,7 +7,7 @@ pub struct FastBukaContract;
 
 #[contractimpl]
 impl FastBukaContract {
-    fn __constructor(env: Env, admin: Address) {
+    pub fn __constructor(env: Env, admin: Address) {
         admin.require_auth();
         let mut admins = Vec::new(&env);
         admins.push_back(admin);

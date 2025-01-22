@@ -65,29 +65,6 @@ impl CustomerOperations for FastBukaContract {
     }
 
 
-    // fn user_confirms_order(env: Env, order_id: u128, address: Address) -> Result<(), FastBukaError> {
-    //     // Get order from storage
-    //     let mut order: Order = env.storage()
-    //         .persistent()
-    //         .get(&order_id)
-    //         .ok_or(FastBukaError::OrderNotFound)?;
-
-    //     // Require authorization from the order's user
-    //     address.require_auth();
-
-    //     // Check if order is in Delivered status by Rider
-    //     if order.status != OrderStatus::Delivered {
-    //         return Err(FastBukaError::InvalidStatus);
-    //     }
-
-    //     // Update order status to Completed
-    //     order.status = OrderStatus::Completed;
-    //     env.storage().persistent().set(&order_id, &order);
-
-    //     Ok(())
-    // }
-
-
     fn customer_raise_dispute(
         env: Env,
         order_id: u128,

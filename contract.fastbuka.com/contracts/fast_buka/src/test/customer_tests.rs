@@ -13,12 +13,14 @@ extern crate std;
 fn test_customer_complete_order() {
     let env = Env::default();
     env.mock_all_auths();
+
+    let admin = Address::generate(&env);
     
-    let contract_id = env.register(FastBukaContract, ());
+    let contract_id = env.register(FastBukaContract, (admin.clone(),));
     let client = FastBukaContractClient::new(&env, &contract_id);
     
     // Setup test accounts
-    let admin = Address::generate(&env);
+   
     let user = Address::generate(&env);
     let vendor = Address::generate(&env);
     let rider = Address::generate(&env);
@@ -65,12 +67,13 @@ fn test_customer_complete_order() {
 fn test_check_order_status_by_user() {
     let env = Env::default();
     env.mock_all_auths();
+
+    let admin = Address::generate(&env);
     
-    let contract_id = env.register(FastBukaContract, ());
+    let contract_id = env.register(FastBukaContract, (admin.clone(),));
     let client = FastBukaContractClient::new(&env, &contract_id);
     
     // Setup test accounts
-    let admin = Address::generate(&env);
     let user = Address::generate(&env);
     let vendor = Address::generate(&env);
     let rider = Address::generate(&env);
@@ -143,12 +146,13 @@ fn test_check_order_status_by_user() {
 fn test_raise_dispute_when_order_not_delivered() {
     let env = Env::default();
     env.mock_all_auths();
+
+    let admin = Address::generate(&env);
     
-    let contract_id = env.register(FastBukaContract, ());
+    let contract_id = env.register(FastBukaContract, (admin.clone(),));
     let client = FastBukaContractClient::new(&env, &contract_id);
     
     // Setup test accounts
-    let admin = Address::generate(&env);
     let user = Address::generate(&env);
     let vendor = Address::generate(&env);
     let rider = Address::generate(&env);
@@ -193,12 +197,13 @@ fn test_raise_dispute_when_order_not_delivered() {
 fn test_get_confirmation_number_customer() {
     let env = Env::default();
     env.mock_all_auths();
+
+    let admin = Address::generate(&env);
     
-    let contract_id = env.register(FastBukaContract, ());
+    let contract_id = env.register(FastBukaContract, (admin.clone(),));
     let client = FastBukaContractClient::new(&env, &contract_id);
     
     // Setup test accounts
-    let admin = Address::generate(&env);
     let user = Address::generate(&env);
     let vendor = Address::generate(&env);
     
