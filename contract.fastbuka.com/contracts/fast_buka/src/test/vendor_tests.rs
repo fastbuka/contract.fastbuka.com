@@ -15,10 +15,12 @@ fn test_get_vendor_pending_orders() {
     let env = Env::default();
     env.mock_all_auths();
 
-    let contract_id = env.register(FastBukaContract, ());
+    let admin = Address::generate(&env);
+
+    let contract_id = env.register(FastBukaContract, (admin.clone(),));
     let client = FastBukaContractClient::new(&env, &contract_id);
 
-    let admin = Address::generate(&env);
+    
     let user1 = Address::generate(&env);
     let vendor1 = Address::generate(&env);
     let vendor2 = Address::generate(&env);
@@ -51,10 +53,12 @@ fn test_get_vendor_no_found_orders() {
     let env = Env::default();
     env.mock_all_auths();
 
-    let contract_id = env.register(FastBukaContract, ());
+    let admin = Address::generate(&env);
+
+    let contract_id = env.register(FastBukaContract, (admin.clone(),));
     let client = FastBukaContractClient::new(&env, &contract_id);
 
-    let admin = Address::generate(&env);
+    
     let user1 = Address::generate(&env);
     let vendor1 = Address::generate(&env);
     let vendor2 = Address::generate(&env);
@@ -76,12 +80,13 @@ fn test_get_vendor_no_found_orders() {
 fn test_update_order_status_by_vendor() {
     let env = Env::default();
     env.mock_all_auths();
+
+    let admin = Address::generate(&env);
     
-    let contract_id = env.register(FastBukaContract, ());
+    let contract_id = env.register(FastBukaContract, (admin.clone(),));
     let client = FastBukaContractClient::new(&env, &contract_id);
     
     // Setup test accounts
-    let admin = Address::generate(&env);
     let user = Address::generate(&env);
     let vendor = Address::generate(&env);
     
@@ -116,11 +121,13 @@ fn test_update_order_status_by_vendor() {
 fn test_update_order_status_by_wrong_vendor() {
     let env = Env::default();
     env.mock_all_auths();
+
+    let admin = Address::generate(&env);
     
-    let contract_id = env.register(FastBukaContract, ());
+    let contract_id = env.register(FastBukaContract, (admin.clone(),));
     let client = FastBukaContractClient::new(&env, &contract_id);
     
-    let admin = Address::generate(&env);
+   
     let user = Address::generate(&env);
     let vendor = Address::generate(&env);
     let wrong_vendor = Address::generate(&env);
